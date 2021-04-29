@@ -1,0 +1,4 @@
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://www.minalz.cn:10006/mybatis-testcase?useUnicode=true&characterEncoding=utf-8&rewriteBatchedStatements=true
+jdbc.username=root
+jdbc.password=123456
