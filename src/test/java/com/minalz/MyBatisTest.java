@@ -36,6 +36,7 @@ public class MyBatisTest {
      */
     @Test
     public void testStatement() throws IOException {
+        // 创建会话的过程 我们获得了一个DefaultSqlSession 里面包含了一个Executor Executor是SQL的实际执行对象
         SqlSession session = sqlSessionFactory.openSession();
         try {
             Blog blog = (Blog) session.selectOne("com.minalz.mapper.BlogMapper.selectBlogById", 1);
@@ -53,6 +54,10 @@ public class MyBatisTest {
     public void testSelect() throws IOException {
         SqlSession session = sqlSessionFactory.openSession(); // ExecutorType.BATCH
         try {
+            /**
+             * 获得Mapper对象的过程 实质上是获取了一个JDK动态代理对象 类型是$Proxy数字
+             * 这个代理类会继承Proxy类 实现被代理的接口 里面持有了一个MapperProxy类型的触发管理类
+             */
             BlogMapper mapper = session.getMapper(BlogMapper.class);
             Blog blog = mapper.selectBlogById(1);
             System.out.println(blog);
