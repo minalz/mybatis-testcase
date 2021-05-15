@@ -19,6 +19,7 @@ import java.util.List;
  * @Author: minalz
  * MyBatis Maven演示工程
  */
+
 public class MyBatisTest {
 
     private SqlSessionFactory sqlSessionFactory;
