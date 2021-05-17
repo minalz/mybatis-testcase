@@ -24,7 +24,7 @@
     </settings>
 
     <typeAliases>
-        <typeAlias alias="blog" type="com.minalz.domain.Blog" />
+        <typeAlias alias="blog" type="cn.minalz.domain.Blog" />
     </typeAliases>
 
 <!--    <typeHandlers>
