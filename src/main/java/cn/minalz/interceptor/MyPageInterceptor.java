@@ -28,6 +28,33 @@ import java.util.Properties;
  * 3.ParameterHandler SQL参数组装的过程
  * 4.ResultSetHandler 结果集的组装
  */
+
+/**
+ * 插件实现原理：
+ * 1.代理类怎么创建？动态代理是JDK Proxy还是Cglib？怎么样创建代理？
+ * -> 调用InterceptorChain的pluginAll()方法，做了什么事？
+ * 遍历InterceptorChain，使用Interceptor实现类的plugin()方法，对目标核心对象进行代理
+ * 这个plugin()方法是我们自己实现的，要返回一个代理对象
+ * 如果是JDK动态代理，那我们必须要写一个实现了InvocationHandler接口的触发管理类。然后用Proxy.newProxyInstance()创建一个代理对象
+ * MyBatis的插件机制已经把这些类封装好了，它已经提供了一个触发管理类Plugin，实现了InvocationHandler
+ * 创建代理对象的newProxyInstance()在这个类里面也进行了封装，就是wrap()方法
+ * 2.代理类在什么时候创建？实在解析配置的时候创建，还是获取会话的时候创建，还是在调用的时候创建？
+ * -> 对Executor拦截的代理类是openSession()的时候创建的
+ * StatementHandler是SimpleExecutor.doQuery()创建的，里面包含了ParamterHandler和ResultSetHandler的创建和代理
+ * 3.核心对象被代理之后，调用的流程是怎么样的？怎么依次执行多个插件的逻辑？在执行完了插件的逻辑之后，怎么执行原来的逻辑？
+ * -> 如果对象被调用了多次，会继续调用下一个拆案的逻辑，再走一次Plugin的invoke()方法
+ * 配置的顺序和执行的顺序是相反的。InterceptorChain的List是按照插件从上往下的顺序解析、添加的，而创建代理的时候也是按照List的顺序代理。
+ * 那么执行的时候当然是从最后代理的对象开始
+ * 插件定义顺序  代理顺序   代理执行顺序(invoke())
+ * 插件1          1          3
+ * 插件2          2          2
+ * 插件3          3          1
+ * 总结:
+ * Interceptor: 自定义插件需要实现接口，实现4个方法
+ * InterceptorChain: 配置的插件解析后会保存在Configuration的InterceptorChain中
+ * Plugin: 触发管理类，还可以用来创建代理对象
+ * Invocation: 对被代理类进行包装，可以调用proceed()调用到被拦截的方法
+ */
 @Intercepts({@Signature(type = Executor.class,method = "query",
         args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})
 })
@@ -41,6 +68,7 @@ public class MyPageInterceptor implements Interceptor {
         RowBounds rb = (RowBounds) args[2]; // RowBounds
         // RowBounds为空，无需分页
         if (rb == RowBounds.DEFAULT) {
+            // 可以继续执行原方法
             return invocation.proceed();
         }
 
